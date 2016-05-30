@@ -110,11 +110,6 @@ public class PuzzleBoard {
         return true;
     }
 
-    /*
-        private int XYtoIndex(int x, int y) {
-            return y + x * NUM_TILES;
-        }
-        */
     private int XYtoIndex(int x, int y) {
         return x + y * NUM_TILES;
     }
@@ -182,15 +177,6 @@ public class PuzzleBoard {
                 return -1;
             return 1;
         }
-    }
-
-    public boolean checkValidity() {
-        boolean isValid = true;
-        for (int i = 1; i < NUM_TILES * NUM_TILES && isValid; i++) {
-            if (tiles.get(i - 1) != null)
-                isValid = i == tiles.get(i - 1).getNumber();
-        }
-        return isValid;
     }
 
     public PuzzleBoard getPreviousBoard() {

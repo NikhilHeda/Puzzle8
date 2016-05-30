@@ -10,8 +10,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.PriorityQueue;
 import java.util.Random;
 
 class PuzzleBoardView extends View {
@@ -87,6 +85,7 @@ class PuzzleBoardView extends View {
     }
 
     void solve() {
+        /*
         PriorityQueue<PuzzleBoard> queue = new PriorityQueue<>(10,
                 new Comparator<PuzzleBoard>() {
                     @Override
@@ -100,16 +99,19 @@ class PuzzleBoardView extends View {
 
                     }
                 });
+        */
+
         //we keep track of visited states, and next possible states.
         ArrayList<PuzzleBoard> nextStates, prevStates = new ArrayList<>();
         //proceed to reset the current board, and create references to store states during the course of the algorithm
         puzzleBoard.reset();
         PuzzleBoard cur = new PuzzleBoard(puzzleBoard); //reference to current board
         cur.reset();
-        queue.add(cur);//enqueue current state
+        MinHeap queue = new MinHeap(10); //enqueue current state
+        queue.insert(cur);
 
         while (!queue.isEmpty()) {
-            cur = queue.poll(); //dequeue element with lowest priority
+            cur = queue.remove(); //dequeue element with lowest priority
             prevStates.add(cur); //add the current state to previousStates
 
             if (!cur.resolved())//if not goal state,
@@ -119,7 +121,7 @@ class PuzzleBoardView extends View {
                     if (prevStates.contains(state))
                         continue;
                     else {
-                        queue.add(state);//enqueue the neighbouring state
+                        queue.insert(state);//enqueue the neighbouring state
                     }
 
                 }
