@@ -9,10 +9,13 @@ import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 import java.util.Random;
 
-public class PuzzleBoardView extends View {
-    public static final int NUM_SHUFFLE_STEPS = 40;
+class PuzzleBoardView extends View {
+    private static final int NUM_SHUFFLE_STEPS = 40;
     private Activity activity;
     private PuzzleBoard puzzleBoard;
     private ArrayList<PuzzleBoard> animation;
@@ -24,7 +27,7 @@ public class PuzzleBoardView extends View {
         animation = null;
     }
 
-    public void initialize(Bitmap imageBitmap) {
+    void initialize(Bitmap imageBitmap) {
         int width = imageBitmap.getWidth();
         puzzleBoard = new PuzzleBoard(imageBitmap, width);
     }
@@ -51,13 +54,17 @@ public class PuzzleBoardView extends View {
         invalidate();
     }
 
-    public void shuffle() {
+    void shuffle() {
         if (animation == null && puzzleBoard != null) {
             // Do something. Then:
-            int r = random.nextInt(puzzleBoard.neighbours().size());
-            puzzleBoard = puzzleBoard.neighbours().get(r);
-            puzzleBoard.reset();
+            for (int i = 0; i < NUM_SHUFFLE_STEPS; i++) {
+
+                ArrayList<PuzzleBoard> possible = puzzleBoard.neighbours();
+                puzzleBoard = possible.get(random.nextInt(possible.size()));
+
+            }
             invalidate();
+            puzzleBoard.reset();
         }
     }
 
@@ -79,6 +86,61 @@ public class PuzzleBoardView extends View {
         return super.onTouchEvent(event);
     }
 
-    public void solve() {
+    void solve() {
+        PriorityQueue<PuzzleBoard> queue = new PriorityQueue<>(10,
+                new Comparator<PuzzleBoard>() {
+                    @Override
+                    public int compare(PuzzleBoard lhs, PuzzleBoard rhs) {
+                        if (lhs.dist() == rhs.dist()) {
+                            return lhs.compMat(rhs);
+                        } else if (lhs.priority() < rhs.priority())
+                            return -1;
+                        else
+                            return 1;
+
+                    }
+                });
+        //we keep track of visited states, and next possible states.
+        ArrayList<PuzzleBoard> nextStates, prevStates = new ArrayList<>();
+        //proceed to reset the current board, and create references to store states during the course of the algorithm
+        puzzleBoard.reset();
+        PuzzleBoard cur = new PuzzleBoard(puzzleBoard); //reference to current board
+        cur.reset();
+        queue.add(cur);//enqueue current state
+
+        while (!queue.isEmpty()) {
+            cur = queue.poll(); //dequeue element with lowest priority
+            prevStates.add(cur); //add the current state to previousStates
+
+            if (!cur.resolved())//if not goal state,
+            {
+                nextStates = cur.neighbours();//get all neighbours and insert into the queue, if state is previously unvisited.
+                for (PuzzleBoard state : nextStates) {
+                    if (prevStates.contains(state))
+                        continue;
+                    else {
+                        queue.add(state);//enqueue the neighbouring state
+                    }
+
+                }
+            } else //when we reach our goal
+            {
+                ArrayList<PuzzleBoard> sequence = new ArrayList<>(); //store sequence of steps so far to animate (code already written)
+                sequence.add(cur);
+                while (cur.getPreviousBoard() != null)//backtrack till initial state of the board.
+                {
+                    sequence.add(cur.getPreviousBoard());
+                    cur = cur.getPreviousBoard();
+                }
+                sequence.add(cur);
+                Collections.reverse(sequence); //reverse to start from current unsolved state and end at solved state
+
+                animation = (ArrayList<PuzzleBoard>) sequence.clone();
+                break;
+            }
+        }
+        invalidate();//update the final UI
+
     }
+
 }

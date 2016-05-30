@@ -77,6 +77,5 @@ public class PuzzleActivity extends Activity {
 
     public void solve(View view) {
         boardView.solve();
-
     }
 }
